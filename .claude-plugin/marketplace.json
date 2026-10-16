@@ -1,0 +1,16 @@
+{
+  "name": "kicad-pcb-helper",
+  "description": "KiCad layout and JLCPCB assembly helper for Claude Code.",
+  "owner": {
+    "name": "suva14",
+    "url": "https://github.com/suva14"
+  },
+  "plugins": [
+    {
+      "name": "kicad-pcb-helper",
+      "source": "./",
+      "description": "Hand-routing companion for KiCad boards: checks after every save, human layout methods, pre-order review, JLCPCB placement files fitted on JLC's footprints.",
+      "version": "0.1.0"
+    }
+  ]
+}
