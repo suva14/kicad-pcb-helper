@@ -4,11 +4,16 @@ A [Claude Code](https://claude.com/claude-code) plugin for designing KiCad board
 loop: the human places and routes by hand, Claude checks the board after every save, reviews it before
 ordering, and prepares JLCPCB assembly files that land on the right pads.
 
-It comes from the design of a small battery-powered data logger (ESP32-S3, 60 × 40 mm, 2 layers) that
-measures vibration on a bicycle for rolling-resistance studies. Claude produced the first complete,
-DRC-clean board; a human then reworked it by hand. The rules in this skill are what that rework
-taught: 166 vias down to 98, decoupling capacitors from 6 to 16 mm away down to 2 mm, no useless ground
-tracks, and a JLC placement file that had silently rotated four ICs.
+## Origin
+
+This skill was not written in the abstract: it exists because of a real KiCad project. While designing
+a small battery-powered data logger (ESP32-S3, 60 × 40 mm, 2 layers) that measures vibration on a
+bicycle for rolling-resistance studies, Claude produced the first complete, DRC-clean board and a human
+then reworked it by hand, asking Claude to check after every save. That rework took the board from
+166 vias to 98, brought decoupling capacitors from 6 to 16 mm away down to about 2 mm, removed 50
+useless ground tracks, and exposed a JLC placement file that had silently rotated four ICs. Every rule
+and script here comes from that work; the measured comparison is in
+[`references/ai-vs-human.md`](skills/kicad-pcb-helper/references/ai-vs-human.md).
 
 ## What it does
 
@@ -33,6 +38,55 @@ In Claude Code:
 The skill loads itself when you work on a KiCad board ("check my board", "recheck", "prepare the JLC
 files", "the part is offset in the Component Placements preview"...).
 
+## Examples
+
+Real outputs from the project above, shortened; the first one combines two successive checks.
+
+**"I rerouted and moved a few parts, check."** The human saves; the skill reads the save time, runs
+the check, and reports only what matters:
+
+```
+saved 2026-10-16 17:15:06
+DRC {('warning', 'silk_edge_clearance'): 2, ...} | unconnected 0 | parity 0
+now: vias 98 (/GND 29) | tracks 1288 mm | near-zero segments 1 | /GND pour pieces (mm2) {'F.Cu': [1588, 28], 'B.Cu': [1856]}
+  near-zero segment /EN B.Cu (110.24; 110.26)
+  moved TP6   (114.00; 113.00 r0) -> (123.00; 106.00 r0)  flipped
+  /TXD0          18.9 -> 7.0 mm, vias 1 -> 1
+  C15  100nF    1.8 mm from U5-2 (/+3V3) | shared ground yes | nearest ground via 3.0 mm
+```
+
+**"The ESP32 is offset in JLC's Component Placements preview."** The placement file had been made with
+a community rotation table. `jlc_cpl.py --check` lays JLC's own footprint of each part on the board:
+
+```
+J1    C165948    shift 6.52 mm, spread 3.50 mm WRONG  -> should be 154.229 -113.500 rot 90
+U1    C7519      shift 0.00 mm, spread 2.11 mm WRONG  -> should be 152.800 -121.600 rot 270
+U5    C2913202   shift 3.63 mm, spread 0.02 mm WRONG  -> should be 121.000 -110.377 rot 0
+...
+11 part(s) misplaced
+```
+
+A USB-C connector facing inwards, ESD arrays, the regulator and the RTC turned by 90 degrees, the module
+3.6 mm off: all fixed before the order, by regenerating the file with `jlc_cpl.py`.
+
+**"Which ground tracks can I delete?"** On the AI-routed board:
+
+```
+/GND vias 77 | exits 55 | redundant (pad already in the main pour) 50
+   C10-2    exit via at (118.50; 131.59), next /GND via 2.5 mm from the pad
+   ...
+```
+
+## Limitations
+
+- Two-layer boards are what it was built and tested on. Four-layer boards work for the checks, but the
+  ground-pour logic only looks at the outer layers.
+- The CPL fit needs the LCSC part number of each part and the EasyEDA footprint behind it; parts with
+  no common pin numbers between the two footprints are reported, not fitted. Top side only.
+- EasyEDA's API is unofficial and rate-limited; the scripts cache what they download.
+- The review checklist guides Claude; it does not replace reading the datasheets of the parts you buy.
+- It never orders, pays, or submits anything: the human stays in charge of the manufacturer's site.
+
 ## Requirements
 
 - KiCad 8 or later (developed on KiCad 10, Windows). The scripts run with **KiCad's own Python**,
@@ -55,6 +109,18 @@ Run them yourself too: on Windows, `"C:/Program Files/KiCad/10.0/bin/python.exe"
 
 All scripts only read the board. They live in `skills/kicad-pcb-helper/scripts/`.
 
+## Tests
+
+`tests/fixture/demo.kicad_pcb` is a 30 × 20 mm board built by `tests/make_fixture.py` with one planted
+defect per check (a far decoupling capacitor, a via in a pad, a redundant ground exit, a signal via
+without stitching, a SOT-23-5 that a fixed rotation table gets wrong). Run:
+
+```
+"C:/Program Files/KiCad/10.0/bin/python.exe" tests/run_tests.py
+```
+
+The JLC test downloads one EasyEDA footprint and is skipped offline.
+
 ## Layout
 
 ```
@@ -63,8 +129,9 @@ skills/kicad-pcb-helper/
   SKILL.md               the method: ground rules, check loop, placement, routing, review, JLC
   references/            the measured AI-versus-human rework, JLC placement details
   scripts/               the checks
+tests/                   demo board with planted defects, and the test runner
 ```
 
 ## License
 
-MIT
+MIT: use it, fork it, adapt it to your own boards; keep the copyright notice.

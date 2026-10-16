@@ -1,3 +1,5 @@
 __pycache__/
 *.pyc
 easyeda/
+*.kicad_prl
+*-backups/
