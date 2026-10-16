@@ -1,7 +1,7 @@
 {
   "name": "kicad-pcb-helper",
   "version": "0.1.0",
-  "description": "Hand-routing companion for KiCad boards: a check after every save, layout rules learned from human rework of an AI-routed board, a pre-order schematic review, and JLCPCB placement files fitted on JLC's own footprints.",
+  "description": "Hand-routing companion for KiCad boards: a check after every save, layout rules learned from human rework of an AI-routed board, a pre-order schematic review, and JLCPCB placement files fitted on JLC's own footprints. Complements kicad-happy.",
   "author": {
     "name": "suva14",
     "url": "https://github.com/suva14"

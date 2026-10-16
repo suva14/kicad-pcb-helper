@@ -1,19 +1,24 @@
 # kicad-pcb-helper
 
-A [Claude Code](https://claude.com/claude-code) plugin for designing KiCad boards with a human in the
-loop: the human places and routes by hand, Claude checks the board after every save, reviews it before
-ordering, and prepares JLCPCB assembly files that land on the right pads.
+My notebook of lessons from designing KiCad boards with [Claude Code](https://claude.com/claude-code),
+kept as a skill so the next project starts where the last one ended. It works alongside
+[kicad-happy](https://github.com/aklofas/kicad-happy), which does the heavy design analysis; this
+plugin adds what the hand rework of one real board taught: how a human places and routes, the check to
+run after every save, the review before ordering, and JLCPCB placement files that land on the right pads.
 
 ## Origin
 
-This skill was not written in the abstract: it exists because of a real KiCad project. While designing
-a small battery-powered data logger (ESP32-S3, 60 × 40 mm, 2 layers) that measures vibration on a
-bicycle for rolling-resistance studies, Claude produced the first complete, DRC-clean board and a human
-then reworked it by hand, asking Claude to check after every save. That rework took the board from
-166 vias to 98, brought decoupling capacitors from 6 to 16 mm away down to about 2 mm, removed 50
-useless ground tracks, and exposed a JLC placement file that had silently rotated four ICs. Every rule
-and script here comes from that work; the measured comparison is in
-[`references/ai-vs-human.md`](skills/kicad-pcb-helper/references/ai-vs-human.md).
+Everything started with **[kicad-happy](https://github.com/aklofas/kicad-happy)** by aklofas, a Claude
+Code plugin that parses KiCad schematics and layouts, runs EMC pre-compliance, checks gerbers and
+prepares boards for fabrication. It reviewed the design of a small battery-powered data logger
+(ESP32-S3, 60 × 40 mm, 2 layers) that measures vibration on a bicycle for rolling-resistance studies.
+
+On that project, Claude produced the first complete, DRC-clean board; I then reworked it by hand,
+asking Claude to check after every save. The rework took the board from 166 vias to 98, brought
+decoupling capacitors from 6 to 16 mm away down to about 2 mm, removed 50 useless ground tracks, and
+exposed a JLC placement file that had silently rotated four ICs. This repository keeps those lessons and
+the scripts written along the way, for my next boards and for anyone who finds them useful. The
+measured comparison is in [`references/ai-vs-human.md`](skills/kicad-pcb-helper/references/ai-vs-human.md).
 
 ## What it does
 
@@ -93,7 +98,8 @@ A USB-C connector facing inwards, ESD arrays, the regulator and the RTC turned b
   which provides the `pcbnew` module, and call `kicad-cli` (found next to that Python, on the PATH, or
   through `KICAD_CLI`).
 - `curl` on the PATH for the JLC placement scripts (downloads EasyEDA footprints).
-- Optional: the kicad-happy Claude Code plugin, for EMC scoring.
+- Recommended: [kicad-happy](https://github.com/aklofas/kicad-happy), for schematic and layout analysis,
+  EMC scoring and gerber checks. This plugin complements it and does not replace it.
 
 ## Scripts
 

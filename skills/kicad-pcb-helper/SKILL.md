@@ -121,6 +121,10 @@ All in `scripts/`, read-only on the board unless stated, run with KiCad's Python
 | `gnd_via_spots.py board --net SPI_SCK` | free spots for a ground via near each via of a signal net |
 | `redundant_gnd_exits.py board` | ground exit tracks a pour makes useless |
 
-Optional: the `kicad-happy` plugin's EMC analyzer gives a score (100 minus penalties). Read its findings
-before chasing the number: its counting changes when unrelated nets change, and some rules are false
+## With kicad-happy
+
+This skill complements the [kicad-happy](https://github.com/aklofas/kicad-happy) plugin, where this
+work started: use kicad-happy for the full design review (schematic and PCB analyzers, EMC, thermal,
+gerbers, sourcing) and this skill for the hand-routing loop, the layout rules and the JLC placement.
+Its EMC analyzer gives a score (100 minus penalties). Read its findings before chasing the number: its counting changes when unrelated nets change, and some rules are false
 positives on small boards (decoupling distance to an ESD array, for example).
