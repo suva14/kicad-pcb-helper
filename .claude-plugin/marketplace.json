@@ -10,7 +10,7 @@
       "name": "kicad-pcb-helper",
       "source": "./",
       "description": "Hand-routing companion for KiCad boards: checks after every save, human layout methods, pre-order review, JLCPCB placement files fitted on JLC's footprints.",
-      "version": "0.1.0"
+      "version": "0.2.0"
     }
   ]
 }
