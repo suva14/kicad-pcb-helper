@@ -28,7 +28,6 @@ roughly a day, asking Claude to check after each save.
 - The regulator grouped with the power input "block", far from its load; complete routing was
   prioritised over "regulator next to its largest load". Too late to move once everything else was
   placed around it.
-
 - A soft power switch (button + GPIO holding the regulator enable) checked statically only. Every
   reset releases the GPIO, so the board powered off during each flash and each crash; a blank board
   could only be flashed with the button held. Found after the audit, by the human asking how boards
