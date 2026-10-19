@@ -29,6 +29,11 @@ roughly a day, asking Claude to check after each save.
   prioritised over "regulator next to its largest load". Too late to move once everything else was
   placed around it.
 
+- A soft power switch (button + GPIO holding the regulator enable) checked statically only. Every
+  reset releases the GPIO, so the board powered off during each flash and each crash; a blank board
+  could only be flashed with the button held. Found after the audit, by the human asking how boards
+  would be flashed in series before assembly; fixed with a diode from VBUS to the enable.
+
 ## What the human did
 
 - Capacitor on the pin, its ground in the same pour piece as the IC's ground, no via.

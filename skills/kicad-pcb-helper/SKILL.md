@@ -90,9 +90,17 @@ Parity 0 and DRC 0 only prove the board equals the schematic. Review the schemat
    pull-ups/pull-downs that hold gates, enables and chip selects during boot.
 3. **What is missing**: CC resistors on USB-C sinks, EN RC on ESP32, SD card pull-ups (DAT1/DAT2 too),
    I2C pull-ups, battery protection (on board or in the cell), gate pull-downs.
-4. **Firmware obligations** the schematic creates (internal pull-ups to enable, pins to drive at boot,
+4. **Walk through every power scenario in time**, not only who can switch the regulator on. For a
+   soft power switch (button plus a GPIO that holds the regulator enable), check each case:
+   blank board on the bench, flashing (the flasher resets the MCU, and a reset releases every GPIO),
+   later reflashes, crash or watchdog reboot on USB and on battery, USB plugged while off, battery
+   only. A design that is correct pin by pin passed DRC, ERC and an independent audit, and still
+   could only be flashed with the button held for the whole flash: production flashing would have
+   needed the front panel assembled first. The fix was one diode from VBUS to the enable (USB present
+   = powered), plus `gpio_hold_en()` on the hold pin in the firmware.
+5. **Firmware obligations** the schematic creates (internal pull-ups to enable, pins to drive at boot,
    hold lines), written down for whoever writes the firmware.
-5. MCU pins: no flash/PSRAM pins (ESP32-S3 octal PSRAM: GPIO 33 to 37), no strapping pins trapped.
+6. MCU pins: no flash/PSRAM pins (ESP32-S3 octal PSRAM: GPIO 33 to 37), no strapping pins trapped.
 
 ## JLCPCB assembly
 
