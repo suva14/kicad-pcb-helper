@@ -110,10 +110,23 @@ Run them yourself too: on Windows, `"C:/Program Files/KiCad/10.0/bin/python.exe"
 | `board_check.py board.kicad_pcb` | full check, compared with the previous run |
 | `jlc_cpl.py board.kicad_pcb --bom BOM.csv -o CPL.csv` | JLCPCB placement file fitted on JLC's footprints |
 | `jlc_cpl.py board.kicad_pcb --bom BOM.csv --check CPL.csv` | audit an existing placement file |
+| `pin_check.py board.kicad_pcb --bom BOM.csv` | each pad's net beside the pin name of the part actually bought |
 | `gnd_via_spots.py board.kicad_pcb --net SPI_SCK` | free spots for a ground via next to a signal's vias |
 | `redundant_gnd_exits.py board.kicad_pcb` | ground exit tracks a solid pour makes useless |
 
 All scripts only read the board. They live in `skills/kicad-pcb-helper/scripts/`.
+
+Each script also has its own command in Claude Code, which runs it and reads the result:
+
+| Command | Runs |
+|---|---|
+| `/kicad-pcb-helper:board-check` | `board_check.py` |
+| `/kicad-pcb-helper:pin-check` | `pin_check.py` |
+| `/kicad-pcb-helper:jlc-cpl` | `jlc_cpl.py` |
+| `/kicad-pcb-helper:gnd-via-spots` | `gnd_via_spots.py` |
+| `/kicad-pcb-helper:redundant-gnd-exits` | `redundant_gnd_exits.py` |
+
+`/kicad-pcb-helper:kicad-pcb-helper` loads the whole method (rules, review, JLC).
 
 ## Tests
 

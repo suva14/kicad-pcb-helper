@@ -80,17 +80,29 @@ use the scripts to check every step. Numbers behind these rules: `references/ai-
 
 Parity 0 and DRC 0 only prove the board equals the schematic. Review the schematic itself:
 
-1. **Pinout against the part actually bought**: compare each IC, transistor, diode and connector
-   symbol, pin by pin, with the symbol or datasheet of the LCSC/manufacturer part number in the BOM.
-   The EasyEDA files `jlc_cpl.py` caches in `easyeda/` beside the CPL carry each pin's name.
-   Watch SOT-23 transistor pinouts, diode cathodes, MOSFET orientation in power paths.
-2. **Every resistor: needed, and on the right side.** Series resistors at the driver end
+1. **Pinout against the part actually bought**: run `scripts/pin_check.py board --bom BOM.csv`. It
+   prints, pad by pad, the board's net beside the pin name in the EasyEDA symbol of the LCSC number,
+   and flags ground pins off ground, supply pins on ground and wired NC pins. Then read every line:
+   SOT-23 transistor pinouts (G/S/D), diode cathodes, MOSFET orientation in power paths (P-MOSFET
+   battery switch: drain on the battery, source on the system), regulator IN/OUT/EN. Parts whose
+   symbol only numbers its pins (connectors, ESD arrays, fuses) are listed apart: check them against
+   the datasheet (USBLC6-2SC6: 1/6 = I/O1, 2 = GND, 3/4 = I/O2, 5 = VBUS).
+   Also check that the CPL tool matched pads **by number**, not by shape alone: a SOT-23-6 turned by
+   180 degrees fits its pads perfectly and swaps GND and VBUS on a USBLC6. `jlc_cpl.py` matches by
+   number.
+2. **Connector polarity the board cannot enforce.** JST-PH battery leads have no standard polarity:
+   red is always +, but the side of the housing it enters changes between makers, and a reversed
+   cell destroys the charger and the power-path MOSFET. Put `+` and `-` in silkscreen at the pins,
+   and write down for the assembler: red lead in front of `+`, checked before the first plug-in; if
+   not, swap the two crimped pins in the housing. Same for any cable made to order (GNSS, sensors):
+   write the pin order on the board side.
+3. **Every resistor: needed, and on the right side.** Series resistors at the driver end
    (MCU side for clocks and outputs); ESD arrays at the connector side of series resistors; LED
    resistors between cathode and driver; dividers and their filter capacitor at the ADC pin;
    pull-ups/pull-downs that hold gates, enables and chip selects during boot.
-3. **What is missing**: CC resistors on USB-C sinks, EN RC on ESP32, SD card pull-ups (DAT1/DAT2 too),
+4. **What is missing**: CC resistors on USB-C sinks, EN RC on ESP32, SD card pull-ups (DAT1/DAT2 too),
    I2C pull-ups, battery protection (on board or in the cell), gate pull-downs.
-4. **Walk through every power scenario in time**, not only who can switch the regulator on. For a
+5. **Walk through every power scenario in time**, not only who can switch the regulator on. For a
    soft power switch (button plus a GPIO that holds the regulator enable), check each case:
    blank board on the bench, flashing (the flasher resets the MCU, and a reset releases every GPIO),
    later reflashes, crash or watchdog reboot on USB and on battery, USB plugged while off, battery
@@ -98,9 +110,9 @@ Parity 0 and DRC 0 only prove the board equals the schematic. Review the schemat
    could only be flashed with the button held for the whole flash: production flashing would have
    needed the front panel assembled first. The fix was one diode from VBUS to the enable (USB present
    = powered), plus `gpio_hold_en()` on the hold pin in the firmware.
-5. **Firmware obligations** the schematic creates (internal pull-ups to enable, pins to drive at boot,
+6. **Firmware obligations** the schematic creates (internal pull-ups to enable, pins to drive at boot,
    hold lines), written down for whoever writes the firmware.
-6. MCU pins: no flash/PSRAM pins (ESP32-S3 octal PSRAM: GPIO 33 to 37), no strapping pins trapped.
+7. MCU pins: no flash/PSRAM pins (ESP32-S3 octal PSRAM: GPIO 33 to 37), no strapping pins trapped.
 
 ## JLCPCB assembly
 
@@ -126,6 +138,7 @@ All in `scripts/`, read-only on the board unless stated, run with KiCad's Python
 |---|---|
 | `board_check.py board.kicad_pcb [--prev old] [--gnd NET]` | the check loop: DRC + parity on a full copy, totals, changes since last run, islands, decoupling, vias in pads |
 | `jlc_cpl.py board --bom BOM.csv -o CPL.csv` | CPL fitted on JLC's footprints; `--check CPL.csv` to audit one |
+| `pin_check.py board --bom BOM.csv` | pad net beside the pin name of the LCSC part; flags ground/supply/NC contradictions |
 | `gnd_via_spots.py board --net SPI_SCK` | free spots for a ground via near each via of a signal net |
 | `redundant_gnd_exits.py board` | ground exit tracks a pour makes useless |
 
